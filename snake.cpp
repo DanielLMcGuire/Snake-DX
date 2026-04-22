@@ -235,8 +235,8 @@ struct EngineState {
     RECT windowed_rect = {};
     DWORD windowed_style = 0;
 
-    uint32_t windowWidth = 800;
-    uint32_t windowHeight = 600;
+    uint32_t windowWidth = WIDTH * 24;
+    uint32_t windowHeight = HEIGHT * 24;
 
     GameState *game = nullptr;
 
