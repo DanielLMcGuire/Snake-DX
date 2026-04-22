@@ -15,4 +15,4 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 
 
 ### Screenshot:
-<img width="802" height="632" alt="image" src="https://github.com/user-attachments/assets/d59663ef-c18d-410c-98b0-ab3cacf10eba" />
+<img width="770" height="752" alt="image" src="https://github.com/user-attachments/assets/72919270-d899-494b-a73f-052e7841596f" />
