@@ -583,7 +583,7 @@ std::vector<Vertex> DrawGame(float alpha, EngineState& engine) {
 static void DrawOrthoView(
     std::vector<Vertex>& verts,
     const ViewLayout& vl,
-    const SnakeGameState& g,
+    const SnakeGameState& game,
     int hAxis, int vAxis, int dAxis,
     Float4 borderColor,
     float alpha)
@@ -600,28 +600,14 @@ static void DrawOrthoView(
         return a == 0 ? p.x : a == 1 ? p.y : p.z;
         };
 
-    AddRect(verts, vl.px, vl.py, vl.pw, vl.ph, { 0.04f,0.04f,0.04f,1.0f });
-
-    for (int i = 0; i < gridH; i++) {
-        AddRect(verts, ox + i * cx, oy, cx, cx, borderColor);
-        AddRect(verts, ox + i * cx, oy + (gridV - 1) * cx, cx, cx, borderColor);
-    }
-    for (int j = 1; j < gridV - 1; j++) {
-        AddRect(verts, ox, oy + j * cx, cx, cx, borderColor);
-        AddRect(verts, ox + (gridH - 1) * cx, oy + j * cx, cx, cx, borderColor);
-    }
-
-    // helper for shading
     auto ComputeColor = [&](const Int3& p, Float4 base) -> Float4 {
         float d = (float)ax(p, dAxis);
         float depthNorm = d / (float)(gridD - 1);
 
-        // brightness (front brighter, back darker)
         float shade = 0.45f + 0.55f * (1.0f - depthNorm);
 
-        // subtle tint shift (helps distinguish layers)
-        float tintR = 1.0f - 0.3f * depthNorm;
-        float tintB = 1.0f + 0.3f * depthNorm;
+        float tintR = 1.0f - 0.25f * depthNorm;
+        float tintB = 1.0f + 0.25f * depthNorm;
 
         return Float4(
             base.x * shade * tintR,
@@ -631,59 +617,78 @@ static void DrawOrthoView(
         );
         };
 
-    Float4 baseBody(0.05f, 0.55f, 0.12f, 1.0f);
+    // Background
+    AddRect(verts, vl.px, vl.py, vl.pw, vl.ph, Float4(0.04f, 0.04f, 0.04f, 1.0f));
 
-    // body
-    for (size_t i = g.snake_length; i > 1; i--) {
+    // Borders
+    for (int i = 0; i < gridH; i++) {
+        AddRect(verts, ox + i * cx, oy, cx, cx, borderColor);
+        AddRect(verts, ox + i * cx, oy + (gridV - 1) * cx, cx, cx, borderColor);
+    }
+    for (int j = 1; j < gridV - 1; j++) {
+        AddRect(verts, ox, oy + j * cx, cx, cx, borderColor);
+        AddRect(verts, ox + (gridH - 1) * cx, oy + j * cx, cx, cx, borderColor);
+    }
+
+    Float4 bodyCol(0.05f, 0.55f, 0.12f, 1.0f);
+
+    // Body
+    for (size_t i = game.snake_length; i > 1; i--) {
         size_t idx = i - 1;
 
         float ph, pv;
-        if (idx < g.prev_snake_length) {
-            ph = (float)ax(g.prev_snake[idx].position, hAxis)
-                + (ax(g.snake[idx].position, hAxis) - ax(g.prev_snake[idx].position, hAxis)) * alpha;
-            pv = (float)ax(g.prev_snake[idx].position, vAxis)
-                + (ax(g.snake[idx].position, vAxis) - ax(g.prev_snake[idx].position, vAxis)) * alpha;
+        if (idx < game.prev_snake_length) {
+            ph = (float)ax(game.prev_snake[idx].position, hAxis)
+                + (ax(game.snake[idx].position, hAxis) - ax(game.prev_snake[idx].position, hAxis)) * alpha;
+            pv = (float)ax(game.prev_snake[idx].position, vAxis)
+                + (ax(game.snake[idx].position, vAxis) - ax(game.prev_snake[idx].position, vAxis)) * alpha;
         }
         else {
-            ph = (float)ax(g.snake[idx].position, hAxis);
-            pv = (float)ax(g.snake[idx].position, vAxis);
+            ph = (float)ax(game.snake[idx].position, hAxis);
+            pv = (float)ax(game.snake[idx].position, vAxis);
         }
 
-        Float4 col = ComputeColor(g.snake[idx].position, baseBody);
+        Float4 col = ComputeColor(game.snake[idx].position, bodyCol);
         AddRect(verts, ox + ph * cx, oy + pv * cx, cx, cx, col);
     }
 
-    // corners
-    for (size_t i = 0; i < g.corner_count; i++) {
-        float ph = (float)ax(g.corners[i].position, hAxis);
-        float pv = (float)ax(g.corners[i].position, vAxis);
+    // Corners
+    for (size_t i = 0; i < game.corner_count; i++) {
+        float ph = (float)ax(game.corners[i].position, hAxis);
+        float pv = (float)ax(game.corners[i].position, vAxis);
 
-        Float4 col = ComputeColor(g.corners[i].position, baseBody);
+        Float4 col = ComputeColor(game.corners[i].position, bodyCol);
         AddRect(verts, ox + ph * cx, oy + pv * cx, cx, cx, col);
     }
 
-    // food
-    Int3 fp = { g.food_x, g.food_y, g.food_z };
-    float fh = (float)ax(fp, hAxis);
-    float fv = (float)ax(fp, vAxis);
-    AddRect(verts, ox + fh * cx, oy + fv * cx, cx, cx, { 0.95f,0.15f,0.15f,1.0f });
+    // Food
+    {
+        Int3 fp = { game.food_x, game.food_y, game.food_z };
+        float fh = (float)ax(fp, hAxis);
+        float fv = (float)ax(fp, vAxis);
 
-    // head (brighter version of shaded color)
-    if (g.snake_length > 0) {
+        Float4 foodCol = ComputeColor(fp, Float4(0.95f, 0.15f, 0.15f, 1.0f));
+        AddRect(verts, ox + fh * cx, oy + fv * cx, cx, cx, foodCol);
+    }
+
+    // Head
+    if (game.snake_length > 0) {
         float hh2, hv;
-        if (g.prev_snake_length > 0) {
-            hh2 = (float)ax(g.prev_snake[0].position, hAxis)
-                + (ax(g.snake[0].position, hAxis) - ax(g.prev_snake[0].position, hAxis)) * alpha;
-            hv = (float)ax(g.prev_snake[0].position, vAxis)
-                + (ax(g.snake[0].position, vAxis) - ax(g.prev_snake[0].position, vAxis)) * alpha;
+        if (game.prev_snake_length > 0) {
+            hh2 = (float)ax(game.prev_snake[0].position, hAxis)
+                + (ax(game.snake[0].position, hAxis) - ax(game.prev_snake[0].position, hAxis)) * alpha;
+            hv = (float)ax(game.prev_snake[0].position, vAxis)
+                + (ax(game.snake[0].position, vAxis) - ax(game.prev_snake[0].position, vAxis)) * alpha;
         }
         else {
-            hh2 = (float)ax(g.snake[0].position, hAxis);
-            hv = (float)ax(g.snake[0].position, vAxis);
+            hh2 = (float)ax(game.snake[0].position, hAxis);
+            hv = (float)ax(game.snake[0].position, vAxis);
         }
 
-        Float4 headCol = ComputeColor(g.snake[0].position, { 0.2f, 1.0f, 0.2f, 1.0f });
-        headCol.x *= 1.2f; headCol.y *= 1.2f; headCol.z *= 1.2f;
+        Float4 headCol = ComputeColor(game.snake[0].position, Float4(0.2f, 1.0f, 0.2f, 1.0f));
+        headCol.x *= 1.2f;
+        headCol.y *= 1.2f;
+        headCol.z *= 1.2f;
 
         AddRect(verts, ox + hh2 * cx, oy + hv * cx, cx, cx, headCol);
     }
