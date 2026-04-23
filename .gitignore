@@ -6,3 +6,4 @@
 /3D-UWP/x64
 *.user
 /AppPackages
+*.pfx

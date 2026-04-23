@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   Package.appxmanifest for Snake 3D UWP
   Target: Windows 10/11 + Xbox One/Series
@@ -19,7 +19,7 @@
 
   <Identity
     Name="Snake3D"
-    Publisher="CN=YourPublisher"
+    Publisher="CN=DanielLMcGuire"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity
@@ -28,7 +28,7 @@
 
   <Properties>
     <DisplayName>Snake 3D</DisplayName>
-    <PublisherDisplayName>Your Name</PublisherDisplayName>
+    <PublisherDisplayName>Daniel McGuire</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -58,6 +58,8 @@
         BackgroundColor="transparent">
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:InitialRotationPreference>
+         <uap:Rotation Preference="landscape"/></uap:InitialRotationPreference>
       </uap:VisualElements>
 
     </Application>
