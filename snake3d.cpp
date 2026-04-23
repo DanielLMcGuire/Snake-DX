@@ -254,6 +254,9 @@ struct SnakeGameState {
     int dir_x = 1;
     int dir_y = 0;
     int dir_z = 0;
+
+    bool occupied[GRID_X][GRID_Y][GRID_Z] = {};
+    std::vector<Int3> freeCells;
 };
 
 typedef SnakeGameState GameState;
@@ -780,11 +783,26 @@ void InitGame(EngineState &engine) {
 #endif
     }
     // Place snake at the centre of the grid, extending along -X
+
+    memset(game->occupied, 0, sizeof(game->occupied));
+    game->freeCells.clear();
+    game->freeCells.reserve((GRID_X - 2) * (GRID_Y - 2) * (GRID_Z - 2));
+
+    for (int x = 1; x < GRID_X - 1; x++)
+        for (int y = 1; y < GRID_Y - 1; y++)
+            for (int z = 1; z < GRID_Z - 1; z++)
+                game->freeCells.push_back(Int3(x, y, z));
+
     for (size_t i = 0; i < game->snake_length; i++) {
         game->snake[i].position.x = GRID_X / 2 - static_cast<int>(i);
         game->snake[i].position.y = GRID_Y / 2;
         game->snake[i].position.z = GRID_Z / 2;
         game->prev_snake[i] = game->snake[i];
+
+        game->occupied[game->snake[i].position.x]
+            [game->snake[i].position.y]
+            [game->snake[i].position.z] = true;
+
         LOG(L"Snake segment %zu at (%d,%d,%d)", i,
             game->snake[i].position.x, game->snake[i].position.y, game->snake[i].position.z);
     }
@@ -956,34 +974,25 @@ void UpdateGame(EngineState &engine) {
 }
 
 void PlaceFood(SnakeGameState& game) {
-    std::vector<Int3> empty_cells;
-    empty_cells.reserve((GRID_X - 2) * (GRID_Y - 2) * (GRID_Z - 2));
+    // Swap-erase keeps removal O(1)
+    while (!game.freeCells.empty()) {
+        std::uniform_int_distribution<size_t> dist(0, game.freeCells.size() - 1);
+        size_t idx = dist(rng);
+        Int3 c = game.freeCells[idx];
 
-    for (int x = 1; x < GRID_X - 1; x++)
-        for (int y = 1; y < GRID_Y - 1; y++)
-            for (int z = 1; z < GRID_Z - 1; z++) {
-                bool occupied = false;
-                for (size_t i = 0; i < game.snake_length; i++) {
-                    if (game.snake[i].position.x == x &&
-                        game.snake[i].position.y == y &&
-                        game.snake[i].position.z == z) {
-                        occupied = true;
-                        break;
-                    }
-                }
-                if (!occupied) empty_cells.push_back(Int3(x, y, z));
-            }
+        if (!game.occupied[c.x][c.y][c.z]) {
+            game.food_x = c.x;
+            game.food_y = c.y;
+            game.food_z = c.z;
+            return;
+        }
 
-    if (empty_cells.empty()) {
-        game.food_x = game.food_y = game.food_z = -1;
-        return;
+        game.freeCells[idx] = game.freeCells.back();
+        game.freeCells.pop_back();
     }
 
-    std::uniform_int_distribution<size_t> dist(0, empty_cells.size() - 1);
-    Int3 chosen = empty_cells[dist(rng)];
-    game.food_x = chosen.x;
-    game.food_y = chosen.y;
-    game.food_z = chosen.z;
+    // Snake fills the entire grid
+    game.food_x = game.food_y = game.food_z = -1;
 }
 
 std::vector<Vertex> DrawGame(float alpha, EngineState &engine) {
@@ -995,7 +1004,6 @@ std::vector<Vertex> DrawGame(float alpha, EngineState &engine) {
     std::vector<Vertex> verts;
     verts.reserve(MAX_SNAKE * 4 + 600);
 
-    // ── Separator cross ──────────────────────────────────────────
     float hw = engine.windowWidth  * 0.5f;
     float hh = engine.windowHeight * 0.5f;
     Float4 sepCol(0.18f, 0.18f, 0.18f, 1.0f);
@@ -1019,11 +1027,6 @@ std::vector<Vertex> DrawGame(float alpha, EngineState &engine) {
     return verts;
 }
 
-// ─────────────────────────────────────────────────────────────────
-// DrawOrthoView
-//   hAxis / vAxis : world axes (0=X,1=Y,2=Z) shown in this viewport
-//   dAxis         : world axis going "into" the viewport (ignored for pos)
-// ─────────────────────────────────────────────────────────────────
 static void DrawOrthoView(
     std::vector<Vertex>& verts,
     const ViewLayout& vl,
@@ -1177,24 +1180,33 @@ void CleanupGame(EngineState &engine) {
     }
     SnakeGameState* game = engine.game;
     LOG(L"Cleaning up");
+
     for (size_t i = 0; i < game->corner_count; i++) {
         game->corners[i].position.x = 0;
         game->corners[i].position.y = 0;
+        game->corners[i].position.z = 0;
         game->corners[i].segments_remaining = 0;
     }
     game->corner_count = 0;
+
     for (size_t i = 0; i < game->snake_length; i++) {
         game->snake[i].position.x = 0;
         game->snake[i].position.y = 0;
+        game->snake[i].position.z = 0;
     }
     game->snake_length = 5;
+
     game->food_x = 0;
     game->food_y = 0;
+    game->food_z = 0;
     game->score = 0;
     game->dir_x = 0;
     game->dir_y = 0;
     game->dir_z = 0;
-    game->food_z = 0;
+
+    memset(game->occupied, 0, sizeof(game->occupied));
+    game->freeCells.clear();
+
     engine.running = false;
 }
 

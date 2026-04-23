@@ -216,6 +216,8 @@ struct SnakeGameState {
 
     int dir_x = 1;
     int dir_y = 0;
+    bool occupied[WIDTH][HEIGHT] = {};
+    std::vector<Int2> freeCells;
 };
 
 typedef SnakeGameState GameState;
@@ -720,11 +722,25 @@ void InitGame(EngineState &engine) {
         UpdateConstantBuffer(engine);
 #endif
     }
+
+    memset(game->occupied, 0, sizeof(game->occupied));
+    game->freeCells.clear();
+    game->freeCells.reserve((WIDTH - 2) * (HEIGHT - 2));
+
+    for (int x = 1; x < WIDTH - 1; x++)
+        for (int y = 1; y < HEIGHT - 1; y++)
+            game->freeCells.push_back(Int2(x, y));
+
     for (size_t i = 0; i < game->snake_length; i++) {
         game->snake[i].position.x = WIDTH / 2 - static_cast<int>(i);
         game->snake[i].position.y = HEIGHT / 2;
         game->prev_snake[i] = game->snake[i];
-        LOG(L"Snake segment %zu initialized at (%d, %d)", i, game->snake[i].position.x, game->snake[i].position.y);
+
+        game->occupied[game->snake[i].position.x]
+            [game->snake[i].position.y] = true;
+
+        LOG(L"Snake segment %zu initialized at (%d, %d)", i,
+            game->snake[i].position.x, game->snake[i].position.y);
     }
     game->prev_snake_length = game->snake_length;
     game->corner_count = 0;
@@ -818,14 +834,12 @@ void UpdateGame(EngineState &engine) {
         std::exit(-1);
     }
     SnakeGameState* game = engine.game;
-    if (game->snake_length == 0 || game->snake_length > MAX_SNAKE) {
+    if (game->snake_length == 0 || game->snake_length > MAX_SNAKE)
         game->snake_length = (game->snake_length == 0) ? 1 : MAX_SNAKE;
-    }
 
     game->prev_snake_length = game->snake_length;
-    for (size_t i = 0; i < game->snake_length; i++) {
+    for (size_t i = 0; i < game->snake_length; i++)
         game->prev_snake[i] = game->snake[i];
-    }
 
     int new_head_x = game->snake[0].position.x + game->dir_x;
     int new_head_y = game->snake[0].position.y + game->dir_y;
@@ -840,53 +854,58 @@ void UpdateGame(EngineState &engine) {
                 game->corners[game->corner_count].position.y = game->snake[0].position.y;
                 game->corners[game->corner_count].segments_remaining = static_cast<int>(game->snake_length);
                 game->corner_count++;
-                LOG(L"Added corner at (%d, %d), segments_remaining: %zu", game->snake[0].position.x, game->snake[0].position.y, game->snake_length);
+                LOG(L"Added corner at (%d, %d), segments_remaining: %zu",
+                    game->snake[0].position.x, game->snake[0].position.y, game->snake_length);
             }
         }
-        for (size_t i = game->snake_length - 1; i > 0; i--) {
+        for (size_t i = game->snake_length - 1; i > 0; i--)
             game->snake[i] = game->snake[i - 1];
-        }
+    }
+
+    bool eating = (new_head_x == game->food_x && new_head_y == game->food_y);
+    if (!eating) {
+        Int2 tail = game->snake[game->snake_length - 1].position;
+        game->occupied[tail.x][tail.y] = false;
     }
 
     game->snake[0].position.x = new_head_x;
     game->snake[0].position.y = new_head_y;
 
-    for (size_t i = 0; i < game->corner_count; i++) {
+    for (size_t i = 0; i < game->corner_count; i++)
         game->corners[i].segments_remaining--;
-    }
-
     size_t write_idx = 0;
-    for (size_t i = 0; i < game->corner_count; i++) {
-        if (game->corners[i].segments_remaining > 0) {
+
+    for (size_t i = 0; i < game->corner_count; i++)
+        if (game->corners[i].segments_remaining > 0)
             game->corners[write_idx++] = game->corners[i];
-        }
-    }
+
     game->corner_count = write_idx;
 
-    if (game->snake[0].position.x <= 0 || game->snake[0].position.x >= WIDTH - 1 ||
-        game->snake[0].position.y <= 0 || game->snake[0].position.y >= HEIGHT - 1) {
+    if (new_head_x <= 0 || new_head_x >= WIDTH - 1 ||
+        new_head_y <= 0 || new_head_y >= HEIGHT - 1) {
         engine.running = false;
         LOG(L"Snake hit wall. Game over.");
+        return;
     }
 
-    for (size_t i = 1; i < game->snake_length; i++) {
-        if (game->snake[0].position.x == game->snake[i].position.x && game->snake[0].position.y == game->snake[i].position.y) {
-            engine.running = false;
-            LOG(L"Snake collided with itself at (%d, %d). Game over.", game->snake[0].position.x, game->snake[0].position.y);
-        }
+    if (game->occupied[new_head_x][new_head_y]) {
+        engine.running = false;
+        LOG(L"Snake collided with itself at (%d, %d). Game over.", new_head_x, new_head_y);
+        return;
     }
 
-    if (game->snake[0].position.x == game->food_x && game->snake[0].position.y == game->food_y) {
+    game->occupied[new_head_x][new_head_y] = true;
+
+    if (eating) {
         if (game->snake_length > 0 && game->snake_length < MAX_SNAKE) {
-            size_t new_segment_idx = game->snake_length;
-            size_t source_segment_idx = game->snake_length - 1;
-
-            game->snake[new_segment_idx] = game->snake[source_segment_idx];
+            game->snake[game->snake_length] = game->snake[game->snake_length - 1];
             game->snake_length++;
 
             for (size_t i = 0; i < game->corner_count; i++)
                 game->corners[i].segments_remaining++;
 
+            Int2 newTail = game->snake[game->snake_length - 1].position;
+            game->occupied[newTail.x][newTail.y] = true;
             LOG(L"Ate food. New length: %zu, New Score: %d", game->snake_length, game->score + 1);
         }
         PlaceFood(*game);
@@ -895,32 +914,22 @@ void UpdateGame(EngineState &engine) {
 }
 
 void PlaceFood(SnakeGameState& game) {
-    std::vector<Int2> empty_cells;
-    empty_cells.reserve((WIDTH - 2) * (HEIGHT - 2));
+    while (!game.freeCells.empty()) {
+        std::uniform_int_distribution<size_t> dist(0, game.freeCells.size() - 1);
+        size_t idx = dist(rng);
+        Int2 c = game.freeCells[idx];
 
-    for (int x = 1; x < WIDTH - 1; x++) {
-        for (int y = 1; y < HEIGHT - 1; y++) {
-            bool occupied = false;
-            for (size_t i = 0; i < game.snake_length; i++) {
-                if (game.snake[i].position.x == x && game.snake[i].position.y == y) {
-                    occupied = true;
-                    break;
-                }
-            }
-            if (!occupied) empty_cells.push_back(Int2(x, y));
+        if (!game.occupied[c.x][c.y]) {
+            game.food_x = c.x;
+            game.food_y = c.y;
+            return;
         }
+
+        game.freeCells[idx] = game.freeCells.back();
+        game.freeCells.pop_back();
     }
 
-    if (empty_cells.empty()) {
-        game.food_x = -1;
-        game.food_y = -1;
-        return;
-    }
-
-    std::uniform_int_distribution<size_t> dist(0, empty_cells.size() - 1);
-    Int2 chosen = empty_cells[dist(rng)];
-    game.food_x = chosen.x;
-    game.food_y = chosen.y;
+    game.food_x = game.food_y = -1;
 }
 
 std::vector<Vertex> DrawGame(float alpha, EngineState &engine) {
@@ -986,22 +995,29 @@ void CleanupGame(EngineState &engine) {
     }
     SnakeGameState* game = engine.game;
     LOG(L"Cleaning up");
+
     for (size_t i = 0; i < game->corner_count; i++) {
         game->corners[i].position.x = 0;
         game->corners[i].position.y = 0;
         game->corners[i].segments_remaining = 0;
     }
     game->corner_count = 0;
+
     for (size_t i = 0; i < game->snake_length; i++) {
         game->snake[i].position.x = 0;
         game->snake[i].position.y = 0;
     }
     game->snake_length = 5;
+
     game->food_x = 0;
     game->food_y = 0;
     game->score = 0;
     game->dir_x = 0;
     game->dir_y = 0;
+
+    memset(game->occupied, 0, sizeof(game->occupied));
+    game->freeCells.clear();
+
     engine.running = false;
 }
 
