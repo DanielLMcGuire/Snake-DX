@@ -20,7 +20,7 @@
   <Identity
     Name="Snake3D"
     Publisher="CN=DanielLMcGuire"
-    Version="1.0.0.0" />
+    Version="2.2.0.0" />
 
   <mp:PhoneIdentity
     PhoneProductId="00000000-0000-0000-0000-000000000000"
