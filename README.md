@@ -15,6 +15,10 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 > 
 > UWP version is DX12 only
 
+### Features:
+- Variable tick rate, increases as score goes up
+- Fixed (VSYNC) framerate using interpolation
+
 ### Screenshots:
 SNAKE2D:
 <img width="770" height="752" alt="image" src="https://github.com/user-attachments/assets/72919270-d899-494b-a73f-052e7841596f" />
