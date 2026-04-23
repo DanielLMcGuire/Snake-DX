@@ -54,9 +54,9 @@ constexpr int FRAME_COUNT = 2;
 constexpr LPCTSTR CLASS_NAME = L"Snake 3D";
 
 // 3-D grid (includes 1-cell walls on each face)
-constexpr int GRID_X = 20;   // 18 playable cells in X
-constexpr int GRID_Y = 20;   // 18 playable cells in Y
-constexpr int GRID_Z = 20;   // 18 playable cells in Z
+constexpr int GRID_X = 22;   // 20 playable cells in X
+constexpr int GRID_Y = 22;   // 20 playable cells in Y
+constexpr int GRID_Z = 22;   // 20 playable cells in Z
 constexpr int MAX_SNAKE = (18 * 18 * 18); // full 3-D volume
 
 std::uniform_int_distribution<int> dist_x(1, GRID_X - 2);
@@ -1130,22 +1130,11 @@ static void DrawInfoPanel(
         int row = i / maxCols;
         float dx = vl.px + margin + col * (dotSize + gap);
         float dy = vl.py + margin + row * (dotSize + gap);
-        float t  = static_cast<float>(i) / static_cast<float>(displayed > 1 ? displayed - 1 : 1);
+        Float4 blue = Float4(0.0f, 0.75f, 0.75f, 1.0f);
+        float t = static_cast<float>(i) / static_cast<float>(displayed > 1 ? displayed - 1 : 1);
         AddRect(verts, dx, dy, dotSize, dotSize,
-                Float4(0.15f + 0.7f * t, 0.6f - 0.3f * t, 0.15f, 1.0f));
+                blue);
     }
-
-    // Three tiny legend squares (one per view colour) near the bottom
-    float sqSz  = dotSize * 1.8f;
-    float sqY   = vl.py + vl.ph - margin - sqSz;
-    float sqX   = vl.px + margin;
-    Float4 cols3[3] = {
-        Float4(0.0f, 0.75f, 0.75f, 1.0f),   // TOP   – cyan
-        Float4(0.75f, 0.75f, 0.0f, 1.0f),   // FRONT – yellow
-        Float4(0.75f, 0.0f, 0.75f, 1.0f),   // SIDE  – magenta
-    };
-    for (int i = 0; i < 3; i++)
-        AddRect(verts, sqX + i * (sqSz + gap * 2.0f), sqY, sqSz, sqSz, cols3[i]);
 }
 
 void CleanupGame(EngineState &engine) {
