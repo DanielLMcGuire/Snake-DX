@@ -1,4 +1,4 @@
-## Snake (C++20, dx11/dx12)
+## Snake (C++20, dx11/dx12, win32/UWP, 2D/3D)
 
 ### Build:
 ```batch
