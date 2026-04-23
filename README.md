@@ -14,6 +14,8 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 > debug builds allocate a console and write to a log file, and write any dx resource leaks to vs ide console
 > 
 > UWP version is DX12 only
+>
+> Building UWP build will require a self signed cert (setup in VS > appxmanifest > Packaging tab)
 
 ### Features:
 - Variable tick rate, increases as score goes up
