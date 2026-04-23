@@ -9,8 +9,6 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 ```
 
 > [!NOTE]
-> The dx12 renderer does flicker at times
-> 
 > UWP version is DX12 only
 >
 > Building UWP build will require a self signed cert (setup in VS > appxmanifest > Packaging tab)
