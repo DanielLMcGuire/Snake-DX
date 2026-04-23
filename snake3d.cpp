@@ -1028,80 +1028,113 @@ static void DrawOrthoView(
     std::vector<Vertex>& verts,
     const ViewLayout& vl,
     const SnakeGameState& game,
-    int hAxis, int vAxis, int /*dAxis*/,
+    int hAxis, int vAxis, int dAxis,
     Float4 borderColor,
     float alpha)
 {
-    const float cx  = vl.cell_px;
-    const float ox  = vl.off_x;
-    const float oy  = vl.off_y;
+    const float cx = vl.cell_px;
+    const float ox = vl.off_x;
+    const float oy = vl.off_y;
 
     const int gridH = (hAxis == 0) ? GRID_X : (hAxis == 1 ? GRID_Y : GRID_Z);
     const int gridV = (vAxis == 0) ? GRID_X : (vAxis == 1 ? GRID_Y : GRID_Z);
+    const int gridD = (dAxis == 0) ? GRID_X : (dAxis == 1 ? GRID_Y : GRID_Z);
 
-    // Helper: extract one axis component
     auto ax = [](const Int3& p, int a) -> int {
         return a == 0 ? p.x : a == 1 ? p.y : p.z;
-    };
+        };
 
-    // Dark viewport background
+    auto ComputeColor = [&](const Int3& p, Float4 base) -> Float4 {
+        float d = (float)ax(p, dAxis);
+        float depthNorm = d / (float)(gridD - 1);
+
+        float shade = 0.45f + 0.55f * (1.0f - depthNorm);
+
+        float tintR = 1.0f - 0.25f * depthNorm;
+        float tintB = 1.0f + 0.25f * depthNorm;
+
+        return Float4(
+            base.x * shade * tintR,
+            base.y * shade,
+            base.z * shade * tintB,
+            1.0f
+        );
+        };
+
+    // Background
     AddRect(verts, vl.px, vl.py, vl.pw, vl.ph, Float4(0.04f, 0.04f, 0.04f, 1.0f));
 
-    // Border walls (coloured per-view for orientation)
+    // Borders
     for (int i = 0; i < gridH; i++) {
-        AddRect(verts, ox + i*cx, oy,                cx, cx, borderColor);
-        AddRect(verts, ox + i*cx, oy + (gridV-1)*cx, cx, cx, borderColor);
+        AddRect(verts, ox + i * cx, oy, cx, cx, borderColor);
+        AddRect(verts, ox + i * cx, oy + (gridV - 1) * cx, cx, cx, borderColor);
     }
     for (int j = 1; j < gridV - 1; j++) {
-        AddRect(verts, ox,               oy + j*cx, cx, cx, borderColor);
-        AddRect(verts, ox + (gridH-1)*cx, oy + j*cx, cx, cx, borderColor);
+        AddRect(verts, ox, oy + j * cx, cx, cx, borderColor);
+        AddRect(verts, ox + (gridH - 1) * cx, oy + j * cx, cx, cx, borderColor);
     }
 
-    // Snake body – draw tail-to-head so head is always visible
     Float4 bodyCol(0.05f, 0.55f, 0.12f, 1.0f);
+
+    // Body
     for (size_t i = game.snake_length; i > 1; i--) {
         size_t idx = i - 1;
+
         float ph, pv;
         if (idx < game.prev_snake_length) {
-            ph = static_cast<float>(ax(game.prev_snake[idx].position, hAxis))
-               + (ax(game.snake[idx].position, hAxis) - ax(game.prev_snake[idx].position, hAxis)) * alpha;
-            pv = static_cast<float>(ax(game.prev_snake[idx].position, vAxis))
-               + (ax(game.snake[idx].position, vAxis) - ax(game.prev_snake[idx].position, vAxis)) * alpha;
-        } else {
-            ph = static_cast<float>(ax(game.snake[idx].position, hAxis));
-            pv = static_cast<float>(ax(game.snake[idx].position, vAxis));
+            ph = (float)ax(game.prev_snake[idx].position, hAxis)
+                + (ax(game.snake[idx].position, hAxis) - ax(game.prev_snake[idx].position, hAxis)) * alpha;
+            pv = (float)ax(game.prev_snake[idx].position, vAxis)
+                + (ax(game.snake[idx].position, vAxis) - ax(game.prev_snake[idx].position, vAxis)) * alpha;
         }
-        AddRect(verts, ox + ph*cx, oy + pv*cx, cx, cx, bodyCol);
+        else {
+            ph = (float)ax(game.snake[idx].position, hAxis);
+            pv = (float)ax(game.snake[idx].position, vAxis);
+        }
+
+        Float4 col = ComputeColor(game.snake[idx].position, bodyCol);
+        AddRect(verts, ox + ph * cx, oy + pv * cx, cx, cx, col);
     }
 
-    // Draw to hide holes in corners (cubes sliding diagonally is not pretty)
+    // Corners
     for (size_t i = 0; i < game.corner_count; i++) {
-        float ph = static_cast<float>(ax(game.corners[i].position, hAxis));
-        float pv = static_cast<float>(ax(game.corners[i].position, vAxis));
-        AddRect(verts, ox + ph*cx, oy + pv*cx, cx, cx, bodyCol);
+        float ph = (float)ax(game.corners[i].position, hAxis);
+        float pv = (float)ax(game.corners[i].position, vAxis);
+
+        Float4 col = ComputeColor(game.corners[i].position, bodyCol);
+        AddRect(verts, ox + ph * cx, oy + pv * cx, cx, cx, col);
     }
 
-    // Food – drawn on top of body
+    // Food
     {
         Int3 fp = { game.food_x, game.food_y, game.food_z };
-        float fh = static_cast<float>(ax(fp, hAxis));
-        float fv = static_cast<float>(ax(fp, vAxis));
-        AddRect(verts, ox + fh*cx, oy + fv*cx, cx, cx, Float4(0.95f, 0.15f, 0.15f, 1.0f));
+        float fh = (float)ax(fp, hAxis);
+        float fv = (float)ax(fp, vAxis);
+
+        Float4 foodCol = ComputeColor(fp, Float4(0.95f, 0.15f, 0.15f, 1.0f));
+        AddRect(verts, ox + fh * cx, oy + fv * cx, cx, cx, foodCol);
     }
 
-    // Snake head – always on very top
+    // Head
     if (game.snake_length > 0) {
         float hh2, hv;
         if (game.prev_snake_length > 0) {
-            hh2 = static_cast<float>(ax(game.prev_snake[0].position, hAxis))
+            hh2 = (float)ax(game.prev_snake[0].position, hAxis)
                 + (ax(game.snake[0].position, hAxis) - ax(game.prev_snake[0].position, hAxis)) * alpha;
-            hv  = static_cast<float>(ax(game.prev_snake[0].position, vAxis))
+            hv = (float)ax(game.prev_snake[0].position, vAxis)
                 + (ax(game.snake[0].position, vAxis) - ax(game.prev_snake[0].position, vAxis)) * alpha;
-        } else {
-            hh2 = static_cast<float>(ax(game.snake[0].position, hAxis));
-            hv  = static_cast<float>(ax(game.snake[0].position, vAxis));
         }
-        AddRect(verts, ox + hh2*cx, oy + hv*cx, cx, cx, Float4(0.2f, 1.0f, 0.2f, 1.0f));
+        else {
+            hh2 = (float)ax(game.snake[0].position, hAxis);
+            hv = (float)ax(game.snake[0].position, vAxis);
+        }
+
+        Float4 headCol = ComputeColor(game.snake[0].position, Float4(0.2f, 1.0f, 0.2f, 1.0f));
+        headCol.x *= 1.2f;
+        headCol.y *= 1.2f;
+        headCol.z *= 1.2f;
+
+        AddRect(verts, ox + hh2 * cx, oy + hv * cx, cx, cx, headCol);
     }
 }
 
