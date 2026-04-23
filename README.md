@@ -20,6 +20,7 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 ### Features:
 - Variable tick rate, increases as score goes up
 - Fixed (VSYNC) framerate using interpolation
+- 3D (using the same 2D engine with some tweaks, see below)
 
 ### Screenshots:
 SNAKE2D:
