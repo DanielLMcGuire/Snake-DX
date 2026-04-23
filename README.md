@@ -19,6 +19,16 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 - 3D (using the same 2D engine with some tweaks, see below)
 - win32 debug builds will show and log to a console; UWP builds will log to the IDE
 
+### Bindings:
+| Control | Xbox (3D only) | Windows | 
+|---|---|---|
+| Move 2D (X,Y) | `DPAD`/`LS` | WASD / Arrow keys | 
+| Move 3D forwards (Z-) | `LB` | `Q` |
+| Move 3D backwards (Z+) | `RB` | `E` | 
+| Pause | `≡` | `Escape` |
+| Reset | `⧉` | N/A |
+| Fullscreen | N/A | `F11` / `Alt`+`Enter` |
+
 ### Screenshots:
 SNAKE2D:
 <img width="770" height="752" alt="image" src="https://github.com/user-attachments/assets/72919270-d899-494b-a73f-052e7841596f" />
