@@ -9,7 +9,7 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 ```
 
 > [!NOTE]
-> UWP version is DX12 only
+> UWP version is 3D only and DX12 only
 >
 > Building UWP build will require a self signed cert (setup in VS > appxmanifest > Packaging tab)
 
@@ -20,7 +20,7 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 - win32 debug builds will show and log to a console; UWP builds will log to the IDE
 
 ### Bindings:
-| Control | Xbox (3D only) | Windows | 
+| Control | Xbox Controller (UWP only) | Mouse / KB | 
 |---|---|---|
 | Move 2D (X,Y) | `DPAD`/`LS` | WASD / Arrow keys | 
 | Move 3D forwards (Z-) | `LB` | `Q` |
