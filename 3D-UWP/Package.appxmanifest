@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Package.appxmanifest for Snake 3D UWP
+  Target: Windows 10/11 + Xbox One/Series
+
+  Required Visual Assets (add to Assets/ folder):
+    StoreLogo.png        (50×50)
+    Square150x150Logo.png
+    Square44x44Logo.png
+    Wide310x150Logo.png
+    SplashScreen.png     (620×300)
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  IgnorableNamespaces="mp uap uap5">
+
+  <Identity
+    Name="Snake3D"
+    Publisher="CN=YourPublisher"
+    Version="1.0.0.0" />
+
+  <mp:PhoneIdentity
+    PhoneProductId="00000000-0000-0000-0000-000000000000"
+    PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+
+  <Properties>
+    <DisplayName>Snake 3D</DisplayName>
+    <PublisherDisplayName>Your Name</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <!-- Minimum: Windows 10 build 17763 (1809) for C++/WinRT stability  -->
+    <!-- Xbox One / Series X|S is automatically included                  -->
+    <TargetDeviceFamily Name="Windows.Universal"
+                        MinVersion="10.0.17763.0"
+                        MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-US" />
+  </Resources>
+
+  <Applications>
+    <Application
+      Id="Snake3D"
+      Executable="Snake3DUWP.exe"
+      EntryPoint="Snake3DUWP">
+
+      <uap:VisualElements
+        DisplayName="Snake 3D"
+        Description="3D Snake with three orthographic projections"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        BackgroundColor="transparent">
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+      </uap:VisualElements>
+
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!--
+      No special capabilities needed for:
+        - DirectX 12
+        - Windows.Gaming.Input (Xbox controller)
+        - Display / window management
+
+      Add "internetClient" below only if you add online leaderboards etc.
+    -->
+    <!-- <Capability Name="internetClient" /> -->
+  </Capabilities>
+
+</Package>

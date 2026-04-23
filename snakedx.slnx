@@ -3,6 +3,9 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Project Path="3D-UWP/3D-UWP.vcxproj" Id="25ad818f-d889-49c7-b961-fe9916a5988d">
+    <Deploy Solution="Release|x64" />
+  </Project>
   <Project Path="Snake2D.vcxproj" Id="d275b739-8262-447e-ab86-b1ebe29bdcb9" />
-  <Project Path="Snake3D.vcxproj" />
+  <Project Path="Snake3D.vcxproj" Id="27682a2f-7a3c-4675-a4d4-574423c34e45" />
 </Solution>
