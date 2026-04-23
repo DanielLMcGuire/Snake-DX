@@ -12,7 +12,8 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 > The dx12 renderer does flicker at time
 >
 > debug builds allocate a console and write to a log file, and write any dx resource leaks to vs ide console
-
+> 
+> UWP version is DX12 only
 
 ### Screenshots:
 SNAKE2D:
