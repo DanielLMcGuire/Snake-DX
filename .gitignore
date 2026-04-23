@@ -7,3 +7,6 @@
 *.user
 /AppPackages
 *.pfx
+/3D-UWP/BundleArtifacts
+/3D-UWP/Release
+/Release
