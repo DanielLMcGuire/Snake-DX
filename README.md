@@ -9,9 +9,7 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 ```
 
 > [!NOTE]
-> The dx12 renderer does flicker at time
->
-> debug builds allocate a console and write to a log file, and write any dx resource leaks to vs ide console
+> The dx12 renderer does flicker at times
 > 
 > UWP version is DX12 only
 >
@@ -21,6 +19,7 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 - Variable tick rate, increases as score goes up
 - Fixed (VSYNC) framerate using interpolation
 - 3D (using the same 2D engine with some tweaks, see below)
+- win32 debug builds will show and log to a console; UWP builds will log to the IDE
 
 ### Screenshots:
 SNAKE2D:
