@@ -18,5 +18,8 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 SNAKE2D:
 <img width="770" height="752" alt="image" src="https://github.com/user-attachments/assets/72919270-d899-494b-a73f-052e7841596f" />
 SNAKE3D:
-<img width="802" height="632" alt="image" src="https://github.com/user-attachments/assets/0a7ba1d9-5afb-4572-b568-b75ab0019224" />
+<img width="802" height="632" alt="image" src="https://github.com/user-attachments/assets/6fc487f7-c3b3-4cba-9a7a-aa2aaf1b424c" />
+SNAKE3D (UWP):
+<img width="1920" height="1080" alt="Xbox Series S ScreenShot" src="https://github.com/user-attachments/assets/468b9f20-39d4-471b-9f84-d5587f1016ca" />
+
 
