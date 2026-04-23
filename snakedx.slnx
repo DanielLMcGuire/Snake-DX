@@ -3,5 +3,6 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="snakedx.vcxproj" Id="d275b739-8262-447e-ab86-b1ebe29bdcb9" />
+  <Project Path="Snake2D.vcxproj" Id="d275b739-8262-447e-ab86-b1ebe29bdcb9" />
+  <Project Path="Snake3D.vcxproj" />
 </Solution>
