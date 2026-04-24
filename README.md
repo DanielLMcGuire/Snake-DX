@@ -1,5 +1,7 @@
 ## Snake (dx11/dx12, win32/UWP, 2D/3D)
 
+[Binaries](https://github.com/DanielLMcGuire/Snake-DX/releases/latest)
+
 > [!NOTE]
 > UWP support is 3D only and DX12 only
 >
