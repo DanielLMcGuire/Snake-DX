@@ -1,23 +1,19 @@
-## Snake (C++20, dx11/dx12, win32/UWP, 2D/3D)
-
-### Build:
-```batch
-REM DX11 
-msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX11=1"
-REM DX12
-msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
-```
+## Snake (dx11/dx12, win32/UWP, 2D/3D)
 
 > [!NOTE]
-> UWP version is 3D only and DX12 only
+> UWP support is 3D only and DX12 only
 >
-> Building UWP build will require a self signed cert (setup in VS > appxmanifest > Packaging tab)
+> UWP will require a self signed cert to build (setup in VS > appxmanifest > Packaging tab)
 
 ### Features:
 - Variable tick rate, increases as score goes up
 - Fixed (VSYNC) framerate using interpolation
-- 3D (using the same 2D engine with some tweaks, see below)
-- win32 debug builds will show and log to a console; UWP builds will log to the IDE
+- Debugging
+  - win32 debug builds will allocate a console and log to it and a file
+  - UWP builds will log to the VS IDE
+- 3D
+  -  Orthographic views (to avoid making a 3D engine)
+  -  Info panel (just score for now)
 
 ### Bindings:
 | Control | Xbox Controller (UWP only) | Mouse / KB | 
@@ -28,6 +24,17 @@ msbuild .\snakedx.slnx -p:Configuration=Release -p:CustomDefines="DX12=1"
 | Pause | `≡` | `Escape` |
 | Reset | `⧉` | N/A |
 | Fullscreen | N/A | `F11` / `Alt`+`Enter` |
+
+### Build: (MSVC Only, C++20)
+|Option|Details|
+|---|---|
+|-p:CustomDefines="[DX12,DX11]=1"|DirectX (win32 only)|
+|-p:Configuration=[Release,Debug]|Build Config|
+|-t:[Snake2D,Snake3D,Snake3DUWP]|Project|
+
+```batch
+msbuild .\snakedx.slnx <OPTIONS>
+```
 
 ### Screenshots:
 SNAKE2D:
